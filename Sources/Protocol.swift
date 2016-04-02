@@ -9,8 +9,7 @@ class Protocol {
     var stream:UnsafeMutablePointer<uv_stream_t>? = nil
     var writer:UnsafeMutablePointer<uv_write_t>? = nil
     
-    init(_ stream:UnsafeMutablePointer<uv_stream_t>) {
-        self.stream = stream
+    init() {
         self.writer = UnsafeMutablePointer<uv_write_t>(allocatingCapacity:1)
         self.writer!.pointee.data =  unsafeBitCast(self, to:UnsafeMutablePointer<Void>.self)
     }
@@ -54,21 +53,3 @@ internal func Protocol_read_cb(stream: UnsafeMutablePointer<uv_stream_t>, size: 
     }
 }
 
-internal func Protocol_connect_cb(req: UnsafeMutablePointer<uv_stream_t>, status: Int32) {
-    let loop = uv_default_loop()
-
-    
-    let connect = UnsafeMutablePointer<uv_tcp_t>(allocatingCapacity:1)
-    var stream: UnsafeMutablePointer<uv_stream_t> {
-        return UnsafeMutablePointer<uv_stream_t>(connect)
-    }
-    //proto.stream = stream
-    let proto = Protocol(stream)
-    proto.pin = proto
-    
-    let _ = uv_tcp_init(loop, connect)
-    uv_accept(req, stream)
-    uv_read_start(stream, alloc_cb, Protocol_read_cb)
-    let unsafeP = unsafeBitCast(proto, to:UnsafeMutablePointer<Void>.self)
-    stream.pointee.data = unsafeP
-}
