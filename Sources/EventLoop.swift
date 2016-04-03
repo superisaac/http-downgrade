@@ -1,12 +1,12 @@
 import CUv
 
-typealias GetProtoCallback = () -> Protocol
+typealias GetProtocolFn = () -> Protocol
 
 internal class ProtocolFactory {
-    var getProtocol:GetProtoCallback
+    var getProtocol:GetProtocolFn
     var server:UnsafeMutablePointer<uv_tcp_t>
     
-    init(_ getProtocolFn:GetProtoCallback) {
+    init(_ getProtocolFn:GetProtocolFn) {
         self.getProtocol = getProtocolFn
         self.server = UnsafeMutablePointer<uv_tcp_t>(allocatingCapacity:1)
         self.server.pointee.data = unsafeBitCast(self, to:UnsafeMutablePointer<Void>.self)
@@ -38,22 +38,27 @@ internal func Protocol_connect_cb(req: UnsafeMutablePointer<uv_stream_t>, status
     stream.pointee.data = unsafeP
 }
 
-class TCPServer {
+class EventLoop {
     var factories:[ProtocolFactory]
-    init() {
-        self.factories = [ProtocolFactory]()
-        print("new tcp server")
-    }
+    var loop:UnsafeMutablePointer<uv_loop_t>
     
-    func serve(host:String, port:Int32, _ getProto: GetProtoCallback) {
-        let loop = uv_default_loop()
+    init(_ loop:UnsafeMutablePointer<uv_loop_t>?=nil) {
+        if loop == nil {
+            self.loop = uv_default_loop()
+        } else {
+            self.loop = loop!
+        }
+        self.factories = [ProtocolFactory]()
+    }
+
+    func serve(host:String, port:Int32, _ getProto: GetProtocolFn) {
         let protoFactory = ProtocolFactory(getProto)
 
         let addr = UnsafeMutablePointer<sockaddr_in>(allocatingCapacity:1)
         defer { addr.deallocateCapacity(1) }
     
         let _ = uv_ip4_addr(host, port, addr)
-        let _ = uv_tcp_init(loop, protoFactory.server)
+        let _ = uv_tcp_init(self.loop, protoFactory.server)
         let _ = uv_tcp_bind(protoFactory.server, UnsafePointer<sockaddr>(addr), 0)
         let _ = uv_listen(UnsafeMutablePointer<uv_stream_t>(protoFactory.server), 1000, Protocol_connect_cb)
 
@@ -61,8 +66,7 @@ class TCPServer {
     }
 
     func run() {
-        let loop = uv_default_loop()
-        uv_run(loop, UV_RUN_DEFAULT)        
+        uv_run(self.loop, UV_RUN_DEFAULT)
     }
 }
 
