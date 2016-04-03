@@ -39,7 +39,7 @@ internal func Protocol_connect_cb(req: UnsafeMutablePointer<uv_stream_t>, status
 }
 
 class EventLoop {
-    var factories:[ProtocolFactory]
+    var protoFactories:[ProtocolFactory]
     var loop:UnsafeMutablePointer<uv_loop_t>
     
     init(_ loop:UnsafeMutablePointer<uv_loop_t>?=nil) {
@@ -48,7 +48,7 @@ class EventLoop {
         } else {
             self.loop = loop!
         }
-        self.factories = [ProtocolFactory]()
+        self.protoFactories = [ProtocolFactory]()
     }
 
     func serve(host:String, port:Int32, _ getProto: GetProtocolFn) {
@@ -57,12 +57,19 @@ class EventLoop {
         let addr = UnsafeMutablePointer<sockaddr_in>(allocatingCapacity:1)
         defer { addr.deallocateCapacity(1) }
     
-        let _ = uv_ip4_addr(host, port, addr)
-        let _ = uv_tcp_init(self.loop, protoFactory.server)
-        let _ = uv_tcp_bind(protoFactory.server, UnsafePointer<sockaddr>(addr), 0)
-        let _ = uv_listen(UnsafeMutablePointer<uv_stream_t>(protoFactory.server), 1000, Protocol_connect_cb)
+        var r = uv_ip4_addr(host, port, addr)
+        dieOnUVError(r)
+        
+        r = uv_tcp_init(self.loop, protoFactory.server)
+        dieOnUVError(r)
 
-        self.factories.append(protoFactory)
+        r = uv_tcp_bind(protoFactory.server, UnsafePointer<sockaddr>(addr), 0)
+        dieOnUVError(r)
+        
+        r = uv_listen(UnsafeMutablePointer<uv_stream_t>(protoFactory.server), 1000, Protocol_connect_cb)
+        dieOnUVError(r)
+        
+        self.protoFactories.append(protoFactory)
     }
 
     func run() {
