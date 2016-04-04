@@ -1,5 +1,5 @@
 import Glibc
-import CUv
+import CLibUv
 
 func dieOnUVError(err:Int32) {
     if err < 0 {

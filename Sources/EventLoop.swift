@@ -1,4 +1,4 @@
-import CUv
+import CLibUv
 
 typealias GetProtocolFn = () -> Protocol
 
