@@ -76,4 +76,3 @@ class EventLoop {
         uv_run(self.loop, UV_RUN_DEFAULT)
     }
 }
-

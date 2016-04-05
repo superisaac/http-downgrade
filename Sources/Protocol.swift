@@ -22,15 +22,18 @@ class Protocol {
     
     func onRead(buf:UnsafePointer<uv_buf_t>, size: Int32) {
         guard size >= 0 else { return }
-        self.writeData(buf, size: size)
+        let chunk = [Int8](repeating:0, count:Int(size))
+        memcpy(UnsafeMutablePointer<Int8>(chunk), buf.pointee.base, Int(size))
+        self.writeData(chunk, size: size)
     }
     
-    func writeData(buf: UnsafePointer<uv_buf_t>, size: Int32) {
-        var wbuffer = uv_buf_init(buf.pointee.base, UInt32(size))
+    func writeData(chunk:[Int8], size: Int32) {
+        var wbuffer = uv_buf_init(UnsafeMutablePointer<Int8>(chunk), UInt32(size))
         uv_write(self.writer!, self.stream!, &wbuffer, 1, Protocol_write_cb)
     }
 
     func onClose() {
+        print("closed")
         self.pin = nil
     }
 
