@@ -8,8 +8,11 @@ class Protocol {
     var pin:Protocol? = nil
     var stream:UnsafeMutablePointer<uv_stream_t>? = nil
     var writer:UnsafeMutablePointer<uv_write_t>? = nil
+
+    var dataBuffer:ByteBuffer? = nil
     
     init() {
+        //self.dataBuffer = ByteBuffer()
         self.writer = UnsafeMutablePointer<uv_write_t>(allocatingCapacity:1)
         self.writer!.pointee.data =  unsafeBitCast(self, to:UnsafeMutablePointer<Void>.self)
     }
@@ -25,6 +28,7 @@ class Protocol {
         let chunk = [Int8](repeating:0, count:Int(size))
         memcpy(UnsafeMutablePointer<Int8>(chunk), buf.pointee.base, Int(size))
         self.writeData(chunk, size: size)
+        //self.dataBuffer.push(chunk)
     }
     
     func writeData(chunk:[Int8], size: Int32) {
@@ -40,6 +44,8 @@ class Protocol {
     func onWrite(size: Int32) {
         
     }
+
+    
 }
 
 internal func Protocol_write_cb(handle: UnsafeMutablePointer<uv_write_t>, size: Int32) {
