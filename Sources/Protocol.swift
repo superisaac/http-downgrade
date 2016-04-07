@@ -9,10 +9,10 @@ class Protocol {
     var stream:UnsafeMutablePointer<uv_stream_t>? = nil
     var writer:UnsafeMutablePointer<uv_write_t>? = nil
 
-    var dataBuffer:ByteBuffer? = nil
+    var received:ByteBuffer
     
     init() {
-        //self.dataBuffer = ByteBuffer()
+        self.received = ByteBuffer()
         self.writer = UnsafeMutablePointer<uv_write_t>(allocatingCapacity:1)
         self.writer!.pointee.data =  unsafeBitCast(self, to:UnsafeMutablePointer<Void>.self)
     }
@@ -28,7 +28,13 @@ class Protocol {
         let chunk = [Int8](repeating:0, count:Int(size))
         memcpy(UnsafeMutablePointer<Int8>(chunk), buf.pointee.base, Int(size))
         self.writeData(chunk, size: size)
-        //self.dataBuffer.push(chunk)
+        self.received.push(chunk)
+        print("sss \(self.received.buffer)")
+        let idx = self.received.find([13, 10])
+        if idx >= 0 {
+            print("find \(idx)")
+            self.received.shift(idx + 2)
+        }
     }
     
     func writeData(chunk:[Int8], size: Int32) {

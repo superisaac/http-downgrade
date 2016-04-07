@@ -11,14 +11,18 @@ class ByteBuffer {
         self.buffer += chunk
     }
 
-    func pop(count:Int) {
-        let len = self.buffer.count - count
-        var newBuffer = [Int8](repeating:0, count:len)
-        //self.buffer = self.buffer[count..<len]
-        for i in count...(self.buffer.count) {
-            newBuffer[i-count] = self.buffer[i]
+    func shift(count:Int) {
+        let bufferCount = self.buffer.count
+        if bufferCount < 1024 {
+            for i in count..<bufferCount {
+                self.buffer[i-count] = self.buffer[i]
+            }
+            for _ in 1...count {
+                self.buffer.removeLast()
+            }
+        } else {
+            self.buffer = [Int8](self.buffer[count..<bufferCount])
         }
-        self.buffer = newBuffer
     }
 
     func find(sub:[Int8]) -> Int {
@@ -27,7 +31,7 @@ class ByteBuffer {
         let count = self.buffer.count
         let slen = sub.count
         //self.buffer.count()
-        while index < count - slen {
+        while index <= count - slen {
             var found = true
             for (j, c) in sub.enumerated() {
                 if self.buffer[index+j] != c {
