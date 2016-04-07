@@ -11,6 +11,10 @@ class ByteBuffer {
         self.buffer += chunk
     }
 
+    func size() -> Int {
+        return self.buffer.count
+    }
+
     func shift(count:Int) {
         let bufferCount = self.buffer.count
         if bufferCount < 1024 {
