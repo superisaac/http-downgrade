@@ -53,6 +53,11 @@ class Protocol {
         dieOnUVError(r)
     }
 
+    func writeString(str:String) {
+        let arr = stringToArray(str)
+        self.writeData(arr)
+    }
+
     func onClose() {
         print("closed")
         self.pin = nil

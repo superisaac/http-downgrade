@@ -9,3 +9,11 @@ func dieOnUVError(err:Int32) {
         exit(0)
     }
 }
+
+func stringToArray(str:String) -> [Int8] {
+    var arr = [Int8]()
+    for c in [UInt8](str.utf8) {
+        arr.append(Int8(c))
+    }
+    return arr
+}
