@@ -1,9 +1,9 @@
 import CLibUv
 
-typealias DataCallback = (chunk:[Int8]) -> Void
+typealias DataCallback = (chunk:[UInt8]) -> Void
 
 internal func alloc_cb(handle: UnsafeMutablePointer<uv_handle_t>, size: size_t, buf: UnsafeMutablePointer<uv_buf_t>) {
-    buf.pointee = uv_buf_init(UnsafeMutablePointer<Int8>(allocatingCapacity:size), UInt32(size))
+    buf.pointee = initUVBuffer(UnsafeMutablePointer<UInt8>(allocatingCapacity:size), UInt32(size))
 }
 
 class Protocol {
@@ -11,7 +11,7 @@ class Protocol {
     var stream:UnsafeMutablePointer<uv_stream_t>? = nil
 
     var received:ByteBuffer
-    var terminator:[Int8]? = nil
+    var terminator:[UInt8]? = nil
     var dataCallback:DataCallback? = nil
     
     init() {
@@ -20,8 +20,8 @@ class Protocol {
 
     func onRead(buf:UnsafePointer<uv_buf_t>, size: Int32) {
         guard size >= 0 else { return }
-        let chunk = [Int8](repeating:0, count:Int(size))
-        memcpy(UnsafeMutablePointer<Int8>(chunk), buf.pointee.base, Int(size))
+        let chunk = [UInt8](repeating:0, count:Int(size))
+        memcpy(UnsafeMutablePointer<UInt8>(chunk), buf.pointee.base, Int(size))
         self.received.push(chunk)
         self.testReceived()
     }
@@ -33,19 +33,19 @@ class Protocol {
             let terminator = self.terminator!
             let idx = self.received.find(terminator)
             if idx >= 0 {
-                let chunk = [Int8](self.received.buffer[0..<idx+terminator.count])
+                let chunk = [UInt8](self.received.buffer[0..<idx+terminator.count])
                 self.received.shift(idx + terminator.count)
                 self.dataCallback?(chunk:chunk)
             }
         }
     }
     
-    func writeData(chunk:[Int8], size: Int32 = -1) {
+    func writeData(chunk:[UInt8], size:Int32 = -1) {
         var sz = size
         if size < 0 {
             sz = (Int32)(chunk.count)
         }
-        var wbuffer = uv_buf_init(UnsafeMutablePointer<Int8>(chunk), UInt32(sz))
+        var wbuffer = initUVBuffer(UnsafeMutablePointer<UInt8>(chunk), UInt32(sz))
         let writer = UnsafeMutablePointer<uv_write_t>(allocatingCapacity:1)
         writer.pointee.data =  unsafeBitCast(self, to:UnsafeMutablePointer<Void>.self)
 
@@ -54,8 +54,7 @@ class Protocol {
     }
 
     func writeString(str:String) {
-        let arr = stringToArray(str)
-        self.writeData(arr)
+        self.writeData([UInt8](str.utf8))
     }
 
     func onClose() {
@@ -67,7 +66,7 @@ class Protocol {
         writer.deallocateCapacity(1);
     }
 
-    func readUntil(terminator:[Int8], _ callback: DataCallback) {
+    func readUntil(terminator:[UInt8], _ callback: DataCallback) {
         self.terminator = terminator
         self.dataCallback = callback
         self.testReceived()

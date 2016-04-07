@@ -1,13 +1,13 @@
 import CLibUv
 
 class ByteBuffer {
-    var buffer:[Int8]
+    var buffer:[UInt8]
 
     init() {
-        self.buffer = [Int8]()
+        self.buffer = [UInt8]()
     }
 
-    func push(chunk:[Int8]) {
+    func push(chunk:[UInt8]) {
         self.buffer += chunk
     }
 
@@ -25,11 +25,11 @@ class ByteBuffer {
                 self.buffer.removeLast()
             }
         } else {
-            self.buffer = [Int8](self.buffer[count..<bufferCount])
+            self.buffer = [UInt8](self.buffer[count..<bufferCount])
         }
     }
 
-    func find(sub:[Int8]) -> Int {
+    func find(sub:[UInt8]) -> Int {
         //for (c, index) in self.buffer.enumerate() {
         var index = 0;
         let count = self.buffer.count
