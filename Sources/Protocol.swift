@@ -28,14 +28,19 @@ class Protocol {
 
     func testReceived() {
         guard self.received.size() > 0 else { return }
-        
-        if self.terminator != nil {
+
+        while self.received.size() >= 0 {
+            if self.terminator == nil {
+                break
+            }
             let terminator = self.terminator!
             let idx = self.received.find(terminator)
             if idx >= 0 {
                 let chunk = [UInt8](self.received.buffer[0..<idx+terminator.count])
                 self.received.shift(idx + terminator.count)
                 self.dataCallback?(chunk:chunk)
+            } else {
+                break
             }
         }
     }
