@@ -6,16 +6,28 @@ internal func alloc_cb(handle: UnsafeMutablePointer<uv_handle_t>, size: size_t, 
     buf.pointee = initUVBuffer(UnsafeMutablePointer<UInt8>(allocatingCapacity:size), UInt32(size))
 }
 
+enum WaitMethod {
+case Terminator
+case Size     
+}
+
+struct WaitSt {
+    var method:WaitMethod
+    var terminator:[UInt8]?
+    var size:Int?
+    var callback:DataCallback
+}
+
 class Protocol {
     var pin:Protocol? = nil
     var stream:UnsafeMutablePointer<uv_stream_t>? = nil
 
     var received:ByteBuffer
-    var terminator:[UInt8]? = nil
-    var dataCallback:DataCallback? = nil
+    var waiters:[WaitSt]
     
     init() {
         self.received = ByteBuffer()
+        self.waiters = [WaitSt]()
     }
 
     func onRead(buf:UnsafePointer<uv_buf_t>, size: Int32) {
@@ -28,23 +40,36 @@ class Protocol {
 
     func testReceived() {
         guard self.received.size() > 0 else { return }
+        guard self.waiters.count > 0 else { return }
 
         while self.received.size() >= 0 {
-            if self.terminator == nil {
-                break
+            var waited = false
+            for waitst in self.waiters {
+                //print("received \(self.received.buffer)")
+                if waitst.method == WaitMethod.Terminator {
+                    let terminator = waitst.terminator!
+                    let idx = self.received.find(terminator)
+                    if idx >= 0 {
+                        let chunk = [UInt8](self.received.buffer[0..<idx+terminator.count])
+                        self.received.shift(idx + terminator.count)
+                        waitst.callback(chunk:chunk)
+                        waited = true
+                    }
+                } else {   // .Size
+                    if self.received.size() >= waitst.size! {
+                        let chunk = [UInt8](self.received.buffer[0..<waitst.size!])
+                        self.received.shift(waitst.size!)
+                        waitst.callback(chunk:chunk)
+                        waited = true
+                    }
+                }
             }
-            let terminator = self.terminator!
-            let idx = self.received.find(terminator)
-            if idx >= 0 {
-                let chunk = [UInt8](self.received.buffer[0..<idx+terminator.count])
-                self.received.shift(idx + terminator.count)
-                self.dataCallback?(chunk:chunk)
-            } else {
+            if !waited {
                 break
             }
         }
     }
-    
+
     func writeData(chunk:[UInt8], size:Int32 = -1) {
         var sz = size
         if size < 0 {
@@ -72,10 +97,32 @@ class Protocol {
     }
 
     func readUntil(terminator:[UInt8], _ callback: DataCallback) {
-        self.terminator = terminator
-        self.dataCallback = callback
+        self.clearWaiters()
+        self.waitFor(terminator, callback)
         self.testReceived()
+    }
+
+    func readUntil(size: Int, _ callback: DataCallback) {
+        self.clearWaiters()
+        self.waitFor(size, callback)
+        self.testReceived()
+    }
+
+    func clearWaiters() {
+        self.waiters.removeAll()
+    }
+    
+    func waitFor(terminator:[UInt8], _ callback:DataCallback) {
+        let waitst = WaitSt(method: .Terminator, terminator: terminator, size: nil, callback: callback)
+        self.waiters.append(waitst)
+    }
+
+    func waitFor(size:Int, _ callback:DataCallback) {
+        let waitst = WaitSt(method: .Size, terminator: nil, size: size, callback: callback)
+        self.waiters.append(waitst)
     }    
+    
+
 }
 
 internal func Protocol_write_cb(writer: UnsafeMutablePointer<uv_write_t>, size: Int32) {
