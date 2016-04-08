@@ -21,6 +21,7 @@ struct WaitSt {
 class Protocol {
     var pin:Protocol? = nil
     var stream:UnsafeMutablePointer<uv_stream_t>? = nil
+    var server:UnsafeMutablePointer<uv_tcp_t>? = nil
 
     var received:ByteBuffer
     var waiters:[WaitSt]
@@ -129,7 +130,7 @@ class Protocol {
 
     func close() {
         if self.stream != nil {
-            let handle = unsafeBitCast(self.stream!.pointee, to: UnsafeMutablePointer<uv_handle_t>.self)
+            let handle = unsafeBitCast(self.stream!, to: UnsafeMutablePointer<uv_handle_t>.self)
             uv_close(handle, Protocol_close_cb)
         }
     }
@@ -152,5 +153,5 @@ internal func Protocol_read_cb(stream: UnsafeMutablePointer<uv_stream_t>, size: 
 
 internal func Protocol_close_cb(handle: UnsafeMutablePointer<uv_handle_t>) {
     // closed
-    print("closed")
+    print("protocol closed")
 }

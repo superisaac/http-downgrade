@@ -26,7 +26,8 @@ internal func Protocol_connect_cb(req: UnsafeMutablePointer<uv_stream_t>, status
     }
     let protoFactory = unsafeBitCast(req.pointee.data, to:ProtocolFactory.self)
     let proto = protoFactory.getProtocol()
-    
+
+    proto.server = protoFactory.server
     proto.stream = stream
     proto.pin = proto
 
