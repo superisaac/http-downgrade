@@ -14,3 +14,9 @@ func initUVBuffer(buf: UnsafeMutablePointer<Void>, _ len: UInt32) -> uv_buf_t {
     let buffer = unsafeBitCast(buf, to: UnsafeMutablePointer<Int8>.self)
     return uv_buf_init(buffer, len)
 }
+
+func bytes2String(data: [UInt8]) -> String {
+    var chars = data.map{ Int8(bitPattern:$0)}
+    chars.append(0)
+    return String(validatingUTF8:chars)!
+}

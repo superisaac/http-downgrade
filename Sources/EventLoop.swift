@@ -25,11 +25,12 @@ internal func Protocol_connect_cb(req: UnsafeMutablePointer<uv_stream_t>, status
         return UnsafeMutablePointer<uv_stream_t>(connect)
     }
     let protoFactory = unsafeBitCast(req.pointee.data, to:ProtocolFactory.self)
-    print("hihi \(protoFactory)")
-    let proto = protoFactory.getProtocol()    
+    let proto = protoFactory.getProtocol()
     
     proto.stream = stream
     proto.pin = proto
+
+    proto.onConnected()
     
     let _ = uv_tcp_init(loop, connect)
     uv_accept(req, stream)

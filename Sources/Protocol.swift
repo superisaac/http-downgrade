@@ -30,6 +30,10 @@ class Protocol {
         self.waiters = [WaitSt]()
     }
 
+    func onConnected() {
+        
+    }
+    
     func onRead(buf:UnsafePointer<uv_buf_t>, size: Int32) {
         guard size >= 0 else { return }
         let chunk = [UInt8](repeating:0, count:Int(size))
@@ -121,7 +125,14 @@ class Protocol {
         let waitst = WaitSt(method: .Size, terminator: nil, size: size, callback: callback)
         self.waiters.append(waitst)
     }    
-    
+
+
+    func close() {
+        if self.stream != nil {
+            let handle = unsafeBitCast(self.stream!.pointee, to: UnsafeMutablePointer<uv_handle_t>.self)
+            uv_close(handle, Protocol_close_cb)
+        }
+    }
 
 }
 
@@ -139,3 +150,7 @@ internal func Protocol_read_cb(stream: UnsafeMutablePointer<uv_stream_t>, size: 
     }
 }
 
+internal func Protocol_close_cb(handle: UnsafeMutablePointer<uv_handle_t>) {
+    // closed
+    print("closed")
+}
