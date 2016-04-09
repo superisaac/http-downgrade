@@ -61,10 +61,15 @@ class Protocol {
                         waited = true
                     }
                 } else {   // .Size
-                    if self.received.size() >= waitst.size! {
+                    if waitst.size! <= 0 {
+                        let chunk = self.received.buffer
+                        self.received.clean()
+                        waitst.callback(chunk: chunk)
+                        waited = true
+                    } else if self.received.size() >= waitst.size! {
                         let chunk = [UInt8](self.received.buffer[0..<waitst.size!])
                         self.received.shift(waitst.size!)
-                        waitst.callback(chunk:chunk)
+                        waitst.callback(chunk: chunk)
                         waited = true
                     }
                 }

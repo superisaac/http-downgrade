@@ -11,6 +11,10 @@ class ByteBuffer {
         self.buffer += chunk
     }
 
+    func clean() {
+        self.buffer = [UInt8]()
+    }
+
     func size() -> Int {
         return self.buffer.count
     }

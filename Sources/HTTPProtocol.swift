@@ -29,7 +29,7 @@ class HTTPProtocol: Protocol {
     func onHeaderLine(headerLine:String) {
         print("header: \(headerLine)")
         if headerLine.characters.count == 1 {
-            self.writeString("HTTP 200 OK\r\n\r\nHello\r\n")
+            self.writeString("HTTP/1.1 200 OK\r\n\r\nHello\r\n")
             self.close()
         }
     }
