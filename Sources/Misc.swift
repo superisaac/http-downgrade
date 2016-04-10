@@ -20,3 +20,11 @@ func bytes2String(data: [UInt8]) -> String {
     chars.append(0)
     return String(validatingUTF8:chars)!
 }
+
+func chomp(line:String) -> String {
+    if String(line.utf8.suffix(2)) == "\r\n" {
+        return String(line.utf8.dropLast(2))
+    } else {
+        return line
+    }
+}
