@@ -47,7 +47,7 @@ class Protocol {
         guard self.received.size() > 0 else { return }
         guard self.waiters.count > 0 else { return }
 
-        while self.received.size() >= 0 {
+        while self.received.size() > 0 {
             var waited = false
             for waitst in self.waiters {
                 //print("received \(self.received.buffer)")

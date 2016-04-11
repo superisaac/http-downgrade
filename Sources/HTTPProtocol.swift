@@ -24,13 +24,20 @@ class HTTPProtocol: Protocol {
             wself?.onStatus(line)
         }
     }
-
+    
     func onStatus(line:String) {
         var statusLine = chomp(line)
         print("status: \(statusLine)")
         let arr = statusLine.utf8.split(separator: 32, maxSplits: 2, omittingEmptySubsequences: true)
-        self.request.method = String(arr[0])
-        self.request.path = String(arr[1])
+        if arr.count != 3 {
+            print("Illegal input for http status")
+            self.close()
+            return
+        }
+        self.request.method = String(arr[0])!
+        self.request.path = String(arr[1])!
+        self.request.version = String(arr[2])!
+        
         print("path \(self.request.method) \(self.request.path)")
         self.readLine() {
             (line: String) in
@@ -44,8 +51,7 @@ class HTTPProtocol: Protocol {
         
         if headerLine == "" {
             print("headers \(self.request.headers)")
-            self.writeString("HTTP/1.1 200 OK\r\n\r\nHello\r\n")
-            self.close()
+            self.onHeaders()
         } else {
             let arr = headerLine.utf8.split(separator: 32, maxSplits: 1, omittingEmptySubsequences: true)
             let k = String(arr[0])!
@@ -53,4 +59,22 @@ class HTTPProtocol: Protocol {
             self.request.headers[k] = v
         }
     }
+
+    func onHeaders() {
+        if self.request.method == "GET" {
+            self.writeString("HTTP/1.1 200 OK\r\n\r\nHello\r\n")
+            self.close()
+        } else {
+            weak var wself = self
+            self.readUntil(0) {
+                (chunk:[UInt8]) in
+                wself?.onData(chunk)
+            }
+        }
+    }
+
+    func onData(chunk:[UInt8]) {
+        print("on Data \(chunk)")
+    }
+    
 }

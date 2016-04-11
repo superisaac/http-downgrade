@@ -24,6 +24,8 @@ func bytes2String(data: [UInt8]) -> String {
 func chomp(line:String) -> String {
     if String(line.utf8.suffix(2)) == "\r\n" {
         return String(line.utf8.dropLast(2))
+    } else if (String(line.utf8.suffix(1)) == "\n") {
+        return String(line.utf8.dropLast(1))
     } else {
         return line
     }
