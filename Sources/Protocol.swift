@@ -130,8 +130,11 @@ class Protocol {
     func waitFor(size:Int, _ callback:DataCallback) {
         let waitst = WaitSt(method: .Size, terminator: nil, size: size, callback: callback)
         self.waiters.append(waitst)
-    }    
+    }
 
+    func wait(callback:DataCallback) {
+        self.waitFor(0, callback)
+    }
 
     func close() {
         if self.stream != nil {

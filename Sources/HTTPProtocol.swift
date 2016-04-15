@@ -1,6 +1,6 @@
 typealias LineCallback = (line:String) -> Void
 
-class HTTPProtocol: Protocol {
+class HTTPServerProtocol: Protocol {
     var request: HTTPRequest
 
     override init() {
