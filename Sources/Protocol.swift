@@ -137,6 +137,7 @@ class Protocol {
     }
 
     func close() {
+        print("closing stream")
         if self.stream != nil {
             let handle = unsafeBitCast(self.stream!, to: UnsafeMutablePointer<uv_handle_t>.self)
             uv_close(handle, Protocol_close_cb)
