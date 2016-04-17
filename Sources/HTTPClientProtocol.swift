@@ -7,6 +7,7 @@ class HTTPClientProtocol: Protocol {
             (chunk: [UInt8]) in
             print("= \(chunk)")
         }
-        self.writeString("GET / HTTP/1.1\r\nHost: localhost:8000\r\n\r\n")
+        self.writeString("GET / HTTP/1.1\r\n")
+        self.writeString("Host: localhost:9999\r\n\r\n")
     }    
 }

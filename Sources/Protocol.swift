@@ -21,7 +21,7 @@ struct WaitSt {
 class Protocol {
     var pin:Protocol? = nil
     var stream:UnsafeMutablePointer<uv_stream_t>? = nil
-    var server:UnsafeMutablePointer<uv_tcp_t>? = nil
+    var conn:UnsafeMutablePointer<uv_tcp_t>? = nil
 
     var received:ByteBuffer
     var waiters:[WaitSt]

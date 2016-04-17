@@ -5,8 +5,8 @@ func main() {
         return HTTPServerProtocol()
     }*/
     let proto = HTTPClientProtocol()
-    loop.connect("127.0.0.1", port:8000, proto:proto)
-    //loop.connect("whatismyip.org", port:80, proto:proto)
+    loop.connect("127.0.0.1", port:9999, proto:proto)
+
     loop.run()
 }
 

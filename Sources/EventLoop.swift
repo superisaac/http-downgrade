@@ -31,7 +31,7 @@ internal func Protocol_connection_cb(req: UnsafeMutablePointer<uv_stream_t>, sta
     let protoFactory = unsafeBitCast(req.pointee.data, to:ProtocolFactory.self)
     let proto = protoFactory.getProtocol()
 
-    proto.server = protoFactory.server
+    proto.conn = protoFactory.server
     proto.stream = stream
     proto.pin = proto
 
@@ -98,6 +98,7 @@ class EventLoop {
             return UnsafeMutablePointer<uv_stream_t>(client)
         }
         proto.stream = stream
+        proto.conn = client
         proto.pin = proto
         conn.pointee.data = unsafeBitCast(proto, to:UnsafeMutablePointer<Void>.self)
     }
