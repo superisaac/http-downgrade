@@ -19,6 +19,13 @@ internal class ProtocolFactory {
 internal func Protocol_connect_cb(conn: UnsafeMutablePointer<uv_connect_t>, status: Int32) { 
     let proto = unsafeBitCast(conn.pointee.data, to:Protocol.self)
     proto.onConnected()
+
+    let stream = proto.stream!
+    let r = uv_read_start(stream, alloc_cb, Protocol_read_cb)
+    dieOnUVError(r)
+
+    let unsafeP = unsafeBitCast(proto, to:UnsafeMutablePointer<Void>.self)
+    stream.pointee.data = unsafeP
 }
 
 internal func Protocol_connection_cb(req: UnsafeMutablePointer<uv_stream_t>, status: Int32) {
@@ -39,7 +46,9 @@ internal func Protocol_connection_cb(req: UnsafeMutablePointer<uv_stream_t>, sta
     
     let _ = uv_tcp_init(loop, connect)
     uv_accept(req, stream)
-    uv_read_start(stream, alloc_cb, Protocol_read_cb)
+    let r = uv_read_start(stream, alloc_cb, Protocol_read_cb)
+    dieOnUVError(r)
+    
     let unsafeP = unsafeBitCast(proto, to:UnsafeMutablePointer<Void>.self)
     stream.pointee.data = unsafeP
 }
@@ -94,6 +103,7 @@ class EventLoop {
         let conn = UnsafeMutablePointer<uv_connect_t>(allocatingCapacity:1)
         r = uv_tcp_connect(conn, client, UnsafePointer<sockaddr>(addr), Protocol_connect_cb)
         dieOnUVError(r)
+        
         var stream: UnsafeMutablePointer<uv_stream_t> {
             return UnsafeMutablePointer<uv_stream_t>(client)
         }
