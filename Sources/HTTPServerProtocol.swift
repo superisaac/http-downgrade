@@ -1,4 +1,4 @@
-typealias LineCallback = (line:String) -> Void
+
 
 class HTTPServerProtocol: Protocol {
     var request: HTTPRequest
@@ -6,14 +6,6 @@ class HTTPServerProtocol: Protocol {
     override init() {
         self.request = HTTPRequest()
         super.init()
-    }
-    
-    func readLine(callback:LineCallback) {
-        self.readUntil([UInt8]("\r\n".utf8)) {
-            (chunk:[UInt8]) in
-            let line = bytes2String(chunk)
-            callback(line:line)
-        }
     }
     
     override func onConnected() {

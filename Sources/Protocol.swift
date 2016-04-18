@@ -1,6 +1,7 @@
 import CLibUv
 
 typealias DataCallback = (chunk:[UInt8]) -> Void
+typealias LineCallback = (line:String) -> Void
 
 internal func alloc_cb(handle: UnsafeMutablePointer<uv_handle_t>, size: size_t, buf: UnsafeMutablePointer<uv_buf_t>) {
     buf.pointee = initUVBuffer(UnsafeMutablePointer<UInt8>(allocatingCapacity:size), UInt32(size))
@@ -50,7 +51,6 @@ class Protocol {
         while self.received.size() > 0 {
             var waited = false
             for waitst in self.waiters {
-                //print("received \(self.received.buffer)")
                 if waitst.method == WaitMethod.Terminator {
                     let terminator = waitst.terminator!
                     let idx = self.received.find(terminator)
@@ -134,6 +134,14 @@ class Protocol {
 
     func wait(callback:DataCallback) {
         self.waitFor(0, callback)
+    }
+
+    func readLine(callback:LineCallback) {
+        self.readUntil([UInt8]("\r\n".utf8)) {
+            (chunk:[UInt8]) in
+            let line = bytes2String(chunk)
+            callback(line:line)
+        }
     }
 
     func close() {

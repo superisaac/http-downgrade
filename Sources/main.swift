@@ -4,7 +4,7 @@ func main() {
         print("get protocol")
         return HTTPServerProtocol()
     }*/
-    let proto = HTTPClientProtocol()
+    let proto = HTTPClientProtocol(host:"localhost", port:9999, path:"/")
     loop.connect("127.0.0.1", port:9999, proto:proto)
 
     loop.run()
